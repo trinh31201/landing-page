@@ -165,9 +165,8 @@ footer { border-top: 1.5px solid var(--line); padding-block: 32px 48px; font-siz
         <span class="offer">First 10 people: free 1-on-1 help from me, the founder</span>
         <p class="waitlist">In a 10 to 30 minute chat with me, we find a first possible cause and one next step. Then I stay with you, side by side, to learn more and build a better plan. I&rsquo;m not a doctor, and this isn&rsquo;t a diagnosis.</p>
 
-        <form class="signup" id="hero-signup" name="early-tester" method="POST" data-netlify="true" netlify-honeypot="bot-field">
-          <input type="hidden" name="form-name" value="early-tester">
-          <p hidden><label>Leave empty <input name="bot-field"></label></p>
+        <form class="signup" id="hero-signup">
+          <input type="hidden" name="_subject" value="New AcneAlly early-access signup">
           <label class="l" for="em-hero">Email</label>
           <input id="em-hero" name="email" type="email" required autocomplete="email" placeholder="you@example.com">
           <button class="btn primary" type="submit">Claim a free spot</button>
@@ -258,9 +257,8 @@ footer { border-top: 1.5px solid var(--line); padding-block: 32px 48px; font-siz
       <p>I&rsquo;m looking for 10 people who&rsquo;ve had acne for years and tried many things. In our first 10 to 30 minute chat, we go through your history and find a first possible cause and one next step. After that, I stay with you, side by side, to gather more information and turn it into a better plan. You also help shape the app from the start.</p>
       <p>Once the 10 spots are full, new sign-ups join the waitlist for early access and founding-member pricing.</p>
 
-      <form class="signup" id="band-signup" name="early-tester" method="POST" data-netlify="true" netlify-honeypot="bot-field">
-        <input type="hidden" name="form-name" value="early-tester">
-        <p hidden><label>Leave empty <input name="bot-field"></label></p>
+      <form class="signup" id="band-signup">
+        <input type="hidden" name="_subject" value="New AcneAlly early-access signup">
         <label class="l" for="em-band">Email</label>
         <input id="em-band" name="email" type="email" required autocomplete="email" placeholder="you@example.com">
         <button class="btn primary" type="submit">Claim a free spot</button>
@@ -290,19 +288,42 @@ footer { border-top: 1.5px solid var(--line); padding-block: 32px 48px; font-siz
   v.addEventListener('pause', function () { if (!document.hidden && !v.ended) go(); });
 })();
 (function () {
-  var msgs = { ok: "Thank you! I'll email you soon to get started. You can also try the early demo below.", fail: 'Something went wrong. Please try again, or email me at [YOUR EMAIL].' };
+  var msgs = {
+    ok: "Thank you! I'll email you soon to get started. You can also try the early demo below.",
+    fail: "Something went wrong. Please try again."
+  };
+  var endpoint = "https://formspree.io/f/mgakdpoe";
+
   document.querySelectorAll('form.signup').forEach(function (form) {
     form.addEventListener('submit', function (e) {
       e.preventDefault();
+
       var note = form.querySelector('.note');
-      var body = new URLSearchParams(new FormData(form)).toString();
-      fetch('/', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: body })
-        .then(function (r) {
-          if (!r.ok) throw new Error('bad');
-          note.textContent = msgs.ok; form.reset();
-          var d = form.querySelector('.demo-link'); if (d) d.hidden = false;
+      var button = form.querySelector('button[type="submit"]');
+      if (button) button.disabled = true;
+      if (button) button.textContent = 'Submitting...';
+
+      fetch(endpoint, {
+        method: 'POST',
+        body: new FormData(form),
+        headers: { Accept: 'application/json' }
+      })
+        .then(function (response) {
+          if (!response.ok) throw new Error('Submission failed');
+          note.textContent = msgs.ok;
+          form.reset();
+          var demoLink = form.querySelector('.demo-link');
+          if (demoLink) demoLink.hidden = false;
         })
-        .catch(function () { note.textContent = msgs.fail; });
+        .catch(function () {
+          note.textContent = msgs.fail;
+        })
+        .finally(function () {
+          if (button) {
+            button.disabled = false;
+            button.textContent = 'Claim a free spot';
+          }
+        });
     });
   });
 })();
